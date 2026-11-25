@@ -1,0 +1,60 @@
+<!doctype html><html lang="ar" dir="rtl"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>لباب النقول في أسباب النزول</title>
+<style>
+*{box-sizing:border-box}body{margin:0;font-family:system-ui,"Segoe UI",Tahoma,sans-serif;background:#f4efe3;color:#222}
+header{position:sticky;top:0;z-index:5;background:#1f4d3a;color:#fff;padding:8px;display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+header button,header input{font:inherit;border:0;border-radius:8px;padding:8px 10px}
+header button{background:#e8d9a8;color:#1f4d3a;cursor:pointer}header input{width:70px;text-align:center}
+#title{font-weight:700;margin-inline-end:auto}
+main{max-width:760px;margin:0 auto;padding:12px}
+#img{width:100%;border-radius:6px;background:#fff;display:none}
+#text{background:#fffdf6;border-radius:10px;padding:16px;font-size:22px;line-height:2.2;font-family:"Amiri","Traditional Arabic",serif;box-shadow:0 1px 4px #0002;min-height:50vh}
+.s{cursor:pointer;border-radius:4px;padding:1px 2px}.s:hover{background:#ffeaa7}.s.on{background:#fdcb6e}
+.ln{display:block}
+#panel{position:fixed;inset:auto 0 0 0;max-height:62vh;overflow:auto;background:#fff;border-top:4px solid #1f4d3a;padding:14px 16px 24px;transform:translateY(110%);transition:.25s;z-index:9;box-shadow:0 -4px 16px #0004}
+#panel.open{transform:none}#panel h3{margin:0 0 6px;font-size:16px;color:#1f4d3a}
+#q{font-family:"Amiri",serif;font-size:19px;background:#f6f1de;padding:8px;border-radius:8px;margin-bottom:8px}
+#ans{white-space:pre-wrap;line-height:1.9;font-size:17px}
+#x{position:absolute;top:8px;left:10px;background:#eee;border:0;border-radius:50%;width:32px;height:32px;font-size:18px}
+.note{font-size:13px;color:#666;margin-top:8px}
+.nav{display:flex;gap:8px;margin:10px 0}.nav button{flex:1;padding:12px;font-size:17px;border:0;border-radius:10px;background:#1f4d3a;color:#fff}
+</style></head><body>
+<header>
+<span id="title">لباب النقول – السيوطي</span>
+<button id="prev">‹ السابق</button><input id="pg" type="number" min="1"><span id="tot"></span><button id="next">التالي ›</button>
+<button id="baq">سورة البقرة</button><button id="mode">صورة الصفحة</button><button id="bm">★</button>
+</header>
+<main>
+<div id="text"></div><img id="img" alt="">
+<div class="nav"><button id="prev2">‹ السابق</button><button id="next2">التالي ›</button></div>
+<p class="note">اضغط على أي جملة في النص لتظهر لك الشرح. النص مستخرج آليًا من الصور الممسوحة وقد فيه أخطاء، فاضغط "صورة الصفحة" لمقارنته بالأصل. الشرح مولّد بالذكاء الاصطناعي وقد يخطئ، فلا يُعتمد عليه في الفتوى أو الحكم.</p>
+</main>
+<div id="panel"><button id="x">×</button><h3>الشرح</h3><div id="q"></div><div id="ans"></div></div>
+<script src="pages.js"></script>
+<script>
+const N=PAGES.length,$=i=>document.getElementById(i);let cur=+localStorage.pg||11,img=false,bms=JSON.parse(localStorage.bms||"[]"),sel=null;
+$('tot').textContent='/ '+N;$('pg').max=N;
+function show(p){p=Math.max(1,Math.min(N,p));cur=p;localStorage.pg=p;$('pg').value=p;closeP();
+ $('img').src='img/'+String(p).padStart(3,'0')+'.jpg';
+ const t=$('text');t.innerHTML='';
+ PAGES[p-1].split('\n').filter(l=>l.trim()).forEach(l=>{const d=document.createElement('span');d.className='ln';
+  l.split(/(?<=[.:؟!؛])\s+/).forEach(s=>{const e=document.createElement('span');e.className='s';e.textContent=s+' ';e.onclick=()=>explain(e,s,l);d.appendChild(e)});t.appendChild(d)});
+ $('bm').style.opacity=bms.includes(p)?1:.5;scrollTo(0,0)}
+function closeP(){$('panel').classList.remove('open');if(sel)sel.classList.remove('on')}
+async function explain(el,s,line){if(sel)sel.classList.remove('on');sel=el;el.classList.add('on');
+ $('q').textContent=s;$('ans').textContent='جاري الشرح...';$('panel').classList.add('open');
+ const key='ex:'+s;if(localStorage[key]){$('ans').textContent=localStorage[key];return}
+ const prompt='أنت شارح علمي. النص التالي من كتاب "لباب النقول في أسباب النزول" للسيوطي (استخراج آلي قد يحتوي أخطاء). اشرح معناه بالعربية المبسطة في بضعة أسطر: معنى الجملة، الألفاظ الصعبة، وما يتعلق بالآية أو سبب النزول إن ذُكر، ونبّه إن كان النص مشوشًا. لا تخترع معلومات.\n\nالجملة: '+s+'\n\nالسطر كاملًا: '+line;
+ try{const r=await fetch('https://text.pollinations.ai/'+encodeURIComponent(prompt)+'?model=openai');const a=(await r.text()).trim();
+  if(!r.ok||!a)throw 0;localStorage[key]=a;$('ans').textContent=a}catch(e){$('ans').innerHTML='تعذّر الاتصال بخدمة الشرح الآن. جرّب مرة أخرى بعد قليل.'}}
+$('prev').onclick=$('prev2').onclick=()=>show(cur+1===0?1:cur+1);
+$('next').onclick=$('next2').onclick=()=>show(cur-1);
+// RTL book: "next" goes to the higher page number
+$('prev').onclick=$('prev2').onclick=()=>show(cur-1);$('next').onclick=$('next2').onclick=()=>show(cur+1);
+$('pg').onchange=()=>show(+$('pg').value);$('baq').onclick=()=>show(11);$('x').onclick=closeP;
+$('mode').onclick=()=>{img=!img;$('img').style.display=img?'block':'none';$('text').style.display=img?'none':'block';$('mode').textContent=img?'النص':'صورة الصفحة'};
+$('bm').onclick=()=>{const i=bms.indexOf(cur);i<0?bms.push(cur):bms.splice(i,1);localStorage.bms=JSON.stringify(bms);show(cur)};
+addEventListener('keydown',e=>{if(e.key=='ArrowLeft')show(cur+1);if(e.key=='ArrowRight')show(cur-1)});
+show(cur);
+</script></body></html>
