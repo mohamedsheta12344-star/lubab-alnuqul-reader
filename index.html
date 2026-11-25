@@ -45,8 +45,8 @@ function closeP(){$('panel').classList.remove('open');if(sel)sel.classList.remov
 async function explain(el,s,line){if(sel)sel.classList.remove('on');sel=el;el.classList.add('on');
  $('q').textContent=s;$('ans').textContent='جاري الشرح...';$('panel').classList.add('open');
  const key='ex:'+s;if(localStorage[key]){$('ans').textContent=localStorage[key];return}
- const prompt='أنت شارح علمي. النص التالي من كتاب "لباب النقول في أسباب النزول" للسيوطي (استخراج آلي قد يحتوي أخطاء). اشرح معناه بالعربية المبسطة في بضعة أسطر: معنى الجملة، الألفاظ الصعبة، وما يتعلق بالآية أو سبب النزول إن ذُكر، ونبّه إن كان النص مشوشًا. لا تخترع معلومات.\n\nالجملة: '+s+'\n\nالسطر كاملًا: '+line;
- try{const r=await fetch('https://text.pollinations.ai/'+encodeURIComponent(prompt)+'?model=openai');const a=(await r.text()).trim();
+ const prompt='أنت شارح علمي. النص التالي من كتاب "لباب النقول في أسباب النزول" للسيوطي (استخراج آلي قد يحتوي أخطاء). اشرح معناه بالعربية المبسطة في بضعة أسطر: معنى الجملة، الألفاظ الصعبة، وما يتعلق بالآية أو سبب النزول إن ذُكر، ونبّه إن كان النص مشوشًا. اشرح ما في الجملة فقط ولا تضف معلومات من خارجها ولا تخمّن؛ إن كانت مجرد عنوان أو كلمة قصيرة فاكتفِ بسطرين. اكتب نصًا عاديًا بلا علامات تنسيق أو نجوم.\n\nالجملة: '+s+'\n\nالسطر كاملًا: '+line;
+ try{const r=await fetch('https://text.pollinations.ai/'+encodeURIComponent(prompt)+'?model=openai');const a=(await r.text()).replace(/[*#]+/g,'').trim();
   if(!r.ok||!a)throw 0;localStorage[key]=a;$('ans').textContent=a}catch(e){$('ans').innerHTML='تعذّر الاتصال بخدمة الشرح الآن. جرّب مرة أخرى بعد قليل.'}}
 $('prev').onclick=$('prev2').onclick=()=>show(cur+1===0?1:cur+1);
 $('next').onclick=$('next2').onclick=()=>show(cur-1);
